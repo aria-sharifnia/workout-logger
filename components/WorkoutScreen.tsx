@@ -13,6 +13,7 @@ import {
   listWorkoutSets,
   type WorkoutSet,
 } from '../lib/workoutSets';
+import AddSetForm from './AddSetForm';
 
 type Props = { email: string };
 
@@ -37,6 +38,15 @@ export default function WorkoutScreen({ email }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  function handleAdded(newSet: WorkoutSet) {
+    // If the list is currently showing a load error, reload everything instead.
+    if (error) {
+      load();
+      return;
+    }
+    setSets((prev) => [newSet, ...prev]);
+  }
 
   async function handleLogout() {
     setLogoutError(null);
@@ -99,6 +109,7 @@ export default function WorkoutScreen({ email }: Props) {
         </Pressable>
       </View>
       {logoutError && <Text style={styles.error}>{logoutError}</Text>}
+      <AddSetForm onAdded={handleAdded} />
       {renderBody()}
     </View>
   );

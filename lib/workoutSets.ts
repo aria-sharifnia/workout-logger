@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { WorkoutSetInput } from './validateWorkoutSet';
 
 export type WorkoutSet = {
   id: string;
@@ -28,4 +29,15 @@ export async function listWorkoutSets(): Promise<WorkoutSet[]> {
 
   if (error) throw error;
   return (data ?? []) as WorkoutSet[];
+}
+
+export async function createWorkoutSet(input: WorkoutSetInput): Promise<WorkoutSet> {
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .insert(input)
+    .select(COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return data as WorkoutSet;
 }
