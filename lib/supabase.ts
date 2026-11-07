@@ -1,3 +1,4 @@
+import { AppState, Platform } from 'react-native';
 import 'react-native-url-polyfill/auto';
 import 'expo-sqlite/localStorage/install';
 import { createClient } from '@supabase/supabase-js';
@@ -6,7 +7,9 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !supabasePublishableKey) {
-  throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env');
+  throw new Error(
+    'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env'
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
@@ -17,3 +20,14 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
     detectSessionInUrl: false,
   },
 });
+
+// Only refresh tokens while the app is in the foreground (native only).
+if (Platform.OS !== 'web') {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}
