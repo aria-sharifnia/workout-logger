@@ -41,3 +41,17 @@ export async function createWorkoutSet(input: WorkoutSetInput): Promise<WorkoutS
   if (error) throw error;
   return data as WorkoutSet;
 }
+
+// Returns true if a row was deleted, false if no row matched.
+// "No match" means the row is already gone or isn't yours. RLS hides it,
+// so Supabase reports no error in that case.
+export async function deleteWorkoutSet(id: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .delete()
+    .eq('id', id)
+    .select('id');
+
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}

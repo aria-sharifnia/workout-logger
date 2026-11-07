@@ -9,11 +9,13 @@ import {
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import {
+  deleteWorkoutSet,
   getErrorMessage,
   listWorkoutSets,
   type WorkoutSet,
 } from '../lib/workoutSets';
 import AddSetForm from './AddSetForm';
+import SetRow from './SetRow';
 
 type Props = { email: string };
 
@@ -21,6 +23,7 @@ export default function WorkoutScreen({ email }: Props) {
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -40,12 +43,21 @@ export default function WorkoutScreen({ email }: Props) {
   }, [load]);
 
   function handleAdded(newSet: WorkoutSet) {
+    setNotice(null);
     // If the list is currently showing a load error, reload everything instead.
     if (error) {
       load();
       return;
     }
     setSets((prev) => [newSet, ...prev]);
+  }
+
+  // Throws on a real failure (SetRow shows the message).
+  // If nothing matched, the row was already gone: remove it locally and say so.
+  async function handleDelete(id: string): Promise<void> {
+    const removed = await deleteWorkoutSet(id);
+    setSets((prev) => prev.filter((s) => s.id !== id));
+    setNotice(removed ? null : 'That set was already deleted.');
   }
 
   async function handleLogout() {
@@ -80,18 +92,7 @@ export default function WorkoutScreen({ email }: Props) {
         data={sets}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.rowMain}>
-              <Text style={styles.exercise}>{item.exercise_name}</Text>
-              <Text>
-                {item.weight} × {item.reps}
-                {item.rpe !== null ? `  ·  RPE ${item.rpe}` : ''}
-              </Text>
-              <Text style={styles.muted}>
-                {new Date(item.created_at).toLocaleString()}
-              </Text>
-            </View>
-          </View>
+          <SetRow set={item} onDelete={handleDelete} />
         )}
       />
     );
@@ -110,6 +111,7 @@ export default function WorkoutScreen({ email }: Props) {
       </View>
       {logoutError && <Text style={styles.error}>{logoutError}</Text>}
       <AddSetForm onAdded={handleAdded} />
+      {notice ? <Text style={styles.notice}>{notice}</Text> : null}
       {renderBody()}
     </View>
   );
@@ -134,16 +136,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '600' },
   spinner: { marginTop: 32 },
   centerBlock: { alignItems: 'center', gap: 12, marginTop: 32 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 12,
-  },
-  rowMain: { flex: 1, gap: 2 },
-  exercise: { fontSize: 16, fontWeight: '600' },
   muted: { color: '#666' },
+  notice: { color: '#92400e', marginBottom: 8 },
   link: { color: '#2563eb', fontSize: 16 },
   error: { color: '#b91c1c' },
   button: {
