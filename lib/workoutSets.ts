@@ -1,14 +1,12 @@
 import { supabase } from './supabase';
+import type { Tables } from './database.types';
 import type { WorkoutSetInput } from './validateWorkoutSet';
 
-export type WorkoutSet = {
-  id: string;
-  exercise_name: string;
-  weight: number;
-  reps: number;
-  rpe: number | null;
-  created_at: string;
-};
+// The columns the UI reads, derived from the generated Row type.
+export type WorkoutSet = Pick<
+  Tables<'workout_sets'>,
+  'id' | 'exercise_name' | 'weight' | 'reps' | 'rpe' | 'created_at'
+>;
 
 const COLUMNS = 'id, exercise_name, weight, reps, rpe, created_at';
 
@@ -28,7 +26,7 @@ export async function listWorkoutSets(): Promise<WorkoutSet[]> {
     .limit(100);
 
   if (error) throw error;
-  return (data ?? []) as WorkoutSet[];
+  return data ?? [];
 }
 
 export async function createWorkoutSet(input: WorkoutSetInput): Promise<WorkoutSet> {
@@ -39,7 +37,7 @@ export async function createWorkoutSet(input: WorkoutSetInput): Promise<WorkoutS
     .single();
 
   if (error) throw error;
-  return data as WorkoutSet;
+  return data;
 }
 
 // Returns true if a row was deleted, false if no row matched.

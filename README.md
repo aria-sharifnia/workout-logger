@@ -46,8 +46,9 @@ error, and updates fail with permission denied.
   database `check` constraints as the real guarantee.
 - **Session storage:** SQLite-backed `localStorage`, which is not encrypted.
   A production app would encrypt the session using `expo-secure-store`.
-- **Types:** query results are cast to a hand-written type instead of
-  generated from the schema.
+- **Types:** `lib/database.types.ts` is generated from the database schema
+  (dashboard: Integrations > Data API > Docs > Generate and download types).
+  Regenerate it after any schema change.
 - **No pagination:** the list shows the latest 100 sets.
 - **Email confirmation is off** for development. In production I would turn
   it on and configure a custom SMTP provider.
