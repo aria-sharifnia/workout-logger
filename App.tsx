@@ -1,10 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { supabase } from './lib/supabase';
 
 export default function App() {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log('session:', data.session, 'error:', error);
+    });
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <Text>Check the console for the session log</Text>
       <StatusBar style="auto" />
     </View>
   );
